@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Penjualan Tracker Chatbot</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #f6f8fb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 450px;
+      height: 90vh;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Header tetap di atas */
+    .header {
+      background: #2563eb;
+      color: #fff;
+      text-align: center;
+      padding: 16px;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .chat-box {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      line-height: 1.4;
+      font-size: 14px;
+    }
+
+    .bot {
+      background: #e0e7ff;
+      align-self: flex-start;
+      color: #1e3a8a;
+    }
+
+    .user {
+      background: #2563eb;
+      color: #fff;
+      align-self: flex-end;
+    }
+
+    /* Input tetap di bawah */
+    .input-area {
+      display: flex;
+      border-top: 1px solid #e5e7eb;
+      position: sticky;
+      bottom: 0;
+      background: #fff;
+      padding: 5px;
+      z-index: 10;
+    }
+
+    input {
+      flex: 1;
+      border: none;
+      padding: 14px;
+      font-size: 14px;
+      outline: none;
+      border-radius: 10px;
+      background: #f3f4f6;
+      margin-right: 8px;
+    }
+
+    button {
+      border: none;
+      background: #2563eb;
+      color: white;
+      padding: 0 20px;
+      cursor: pointer;
+      font-weight: 500;
+      border-radius: 10px;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #1e40af;
+    }
+
+    .loading {
+      font-size: 13px;
+      color: #9ca3af;
+      align-self: flex-start;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="header">🛍️ Penjualan Tracker</div>
+
+    <div class="chat-box" id="chatBox">
+      <div class="message bot">
+        Halo! 👋 Saya asisten penjualan Anda.<br />
+        Silakan tanyakan stok barang atau detail produk apa pun.
+      </div>
+    </div>
+
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Tulis pertanyaan di sini..." />
+      <button id="sendBtn">Kirim</button>
+    </div>
+  </div>
+
+  <script>
+    const sendBtn = document.getElementById("sendBtn");
+    const userInput = document.getElementById("userInput");
+    const chatBox = document.getElementById("chatBox");
+
+    const WEBHOOK_URL = "https://n8n-smkn1.kartin.my.id/webhook-test/chatbot"; 
+    // Ganti URL di atas dengan URL webhook milikmu
+
+    function addMessage(text, sender) {
+      const msg = document.createElement("div");
+      msg.classList.add("message", sender);
+      msg.textContent = text;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+      addMessage(text, "user");
+      userInput.value = "";
+
+      const loading = document.createElement("div");
+      loading.classList.add("loading");
+      loading.textContent = "Bot sedang mengetik...";
+      chatBox.appendChild(loading);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: text }),
+        });
+
+        const data = await res.json();
+        loading.remove();
+
+        if (data.answer) {
+          addMessage(data.answer, "bot");
+        } else {
+          addMessage("Maaf, tidak ada jawaban dari sistem.", "bot");
+        }
+      } catch (error) {
+        loading.remove();
+        addMessage("Terjadi kesalahan koneksi ke server.", "bot");
+        console.error(error);
+      }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    userInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>
