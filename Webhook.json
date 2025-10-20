@@ -1,0 +1,205 @@
+{
+  "name": "Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chatbot",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -544,
+        400
+      ],
+      "id": "373659eb-6f2b-4941-84f1-66d56551b532",
+      "name": "Webhook",
+      "webhookId": "e2e4bb8c-6fd3-4259-89e7-85a23df4fc3f"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Jawab pertanyaannya:\n{{ $json.body.question }}\n\nGunakan data dari spreadsheet Penjualan berikut untuk memberikan jawaban:\n\nTampilkan jawaban dengan format ramah pelanggan. Jika pengguna meminta gambar, sertakan deskripsi gambar yang cocok untuk generator image seperti “diagram stok barang bulan ini dalam bentuk grafik batang”.\n\nGunakan data dari spreadsheet untuk menjawab pertanyaan pelanggan.\n\nJika kolom \"Gambar / Link\" berisi link gambar, maka tampilkan gambar dari link yang ada.\n\nJika kolom “Gambar / Link” berisi deskripsi teks, gunakan teks tersebut untuk membuat prompt ke generator gambar.",
+        "options": {
+          "systemMessage": "=Kamu adalah asisten toko bernama “SIUdin”. \nTugasmu adalah membantu pelanggan toko yang menjual berbagai alat elektronik seperti resistor, transistor, kipas, kabel, adaptor, modul sensor, dan komponen lainnya.\n\nSumber data utamamu adalah spreadsheet Penjualan yang berisi data stok, harga, dan deskripsi barang. \nGunakan data dari spreadsheet Penjualan untuk menjawab dengan akurat.\n\nAturan perilaku:\n1. Jika pelanggan menanyakan stok, harga, atau spesifikasi — jawab berdasarkan data spreadsheet.\n2. Jika pelanggan meminta perbandingan barang, jelaskan perbedaannya dengan jelas.\n3. Jika pelanggan meminta gambar atau grafik, buat prompt untuk generator gambar seperti Canva atau DALL·E (misalnya: “Gambar diagram rangkaian LED dengan resistor 220 ohm”).\n4. Gunakan gaya bicara sopan, ramah, dan profesional.\n5. Jika data tidak ditemukan di spreadsheet, katakan dengan jujur: “Maaf, data barang tersebut belum tersedia di sistem kami.”\n6. Jangan membuat informasi harga atau stok yang tidak ada di spreadsheet.\n7. Jika pengguna ingin grafik penjualan, arahkan untuk membuatkan tabel data dulu sebelum digrafikkan.\n8. Agar lebih ramah, bisa gunakan sedikit emoji yang sesuai dan menarik.\n\nKamu bisa menjawab dalam Bahasa Indonesia."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -320,
+        400
+      ],
+      "id": "013affff-c77b-425e-a3f0-0e443ab80485",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        576
+      ],
+      "id": "35d55f67-1f24-4f42-82a7-b9f4e5ac7841",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Nb3xspaPM2pNTnB9",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://docs.google.com/spreadsheets/d/e/2PACX-1vQJer8cVZ9SXQWrUjroSZlAnM3LLHlfCcIyaUWUDmgOqCcFX5Kamj8SRGTABg1f_0CtNZphnDkpuMhb/pub?gid=0&single=true&output=csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        32,
+        576
+      ],
+      "id": "e372d3eb-ed49-4330-82c9-991363492f46",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1aegJy5bfXNKiRjx0b_MsgqkOJhoo8EO3jkzA8SdsDtE",
+          "mode": "list",
+          "cachedResultName": "Penjualan",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aegJy5bfXNKiRjx0b_MsgqkOJhoo8EO3jkzA8SdsDtE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aegJy5bfXNKiRjx0b_MsgqkOJhoo8EO3jkzA8SdsDtE/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        -112,
+        576
+      ],
+      "id": "57a24ee1-6866-471e-819d-0a84ba6c369c",
+      "name": "Penjualan",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ngIh7GK71aHUMrk8",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      answer: $json.output || \"❌ Data tidak ditemukan.\"\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32,
+        400
+      ],
+      "id": "1e4a146d-17b8-48ea-b628-098694ef8838",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        256,
+        400
+      ],
+      "id": "1687fdea-61b6-407f-8129-f08c295cba93",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Penjualan": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "aa7461e7-a3ac-49d5-9218-a70d12888ecc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "41f77ff4f4fa1585b561bc6344c6e6afecdcfda9accec67b51677516e4032a60"
+  },
+  "id": "koAz2aNdqTpQSgOc",
+  "tags": []
+}
